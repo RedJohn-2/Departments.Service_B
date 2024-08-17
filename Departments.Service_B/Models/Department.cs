@@ -10,7 +10,7 @@
 
         public Guid? ParentId {  get; set; }
 
-        public Department? Parent = new();
+        public Department? Parent;
 
         public List<Department> Children { get; set; } = new();
     }

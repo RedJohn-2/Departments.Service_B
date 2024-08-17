@@ -1,4 +1,5 @@
-﻿using Departments.Service_B.Models;
+﻿using Departments.Service_B.Contracts;
+using Departments.Service_B.Models;
 using Departments.Service_B.Persistence.Entities;
 
 namespace Departments.Service_B.Persistence.Repositories
@@ -7,6 +8,6 @@ namespace Departments.Service_B.Persistence.Repositories
     {
         Task<IReadOnlyList<Department>> GetAll();
 
-        Task Synchronize(IEnumerable<Department> departments);
+        Task Synchronize(IEnumerable<DepartmentFromFile> departments);
     }
 }

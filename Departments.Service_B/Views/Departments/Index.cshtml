@@ -6,10 +6,15 @@
         <li>
             @department.Name
             @department.Status
-            @if (department.Children != null && department.Children.Any())
+            @if (department.Children != null && department.Children.Count > 0)
             {
                 @await Html.PartialAsync("Partial", department.Children)
             }
         </li>
     }
 </ul>
+
+<form action="Synchronize" method="post" enctype="multipart/form-data">
+    <input type="file" name="file" />
+    <button type="submit">Synchronize</button>
+</form>

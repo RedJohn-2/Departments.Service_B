@@ -1,7 +1,9 @@
-﻿using Departments.Service_B.Models;
+﻿using Departments.Service_B.Contracts;
+using Departments.Service_B.Models;
 using Departments.Service_B.Persistence;
 using Departments.Service_B.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Net.WebSockets;
 
 namespace Departments.Service_B.Persistence.Repositories
 {
@@ -34,9 +36,38 @@ namespace Departments.Service_B.Persistence.Repositories
                 }).ToList();
         }
 
-        public Task Synchronize(IEnumerable<Department> departments)
+        public async Task Synchronize(IEnumerable<DepartmentFromFile> departments)
         {
-            throw new NotImplementedException();
+            var existingDepartments = await _dbContext.Departments.ToListAsync();
+
+            var searchingDictionary = existingDepartments.ToDictionary(d => d.Name);
+
+            var newDepartments = new List<DepartmentEntity>();
+
+            foreach (var department in departments)
+            {
+                if (!searchingDictionary.TryGetValue(department.Name, out var existingDepartment))
+                {
+                    existingDepartment = new DepartmentEntity
+                    {
+                        Name = department.Name
+                    };
+
+                    newDepartments.Add(existingDepartment);
+                    searchingDictionary[existingDepartment.Name] = existingDepartment;
+                }
+
+                if (department.ParentName != null)
+                {
+                    if (searchingDictionary.TryGetValue(department.ParentName,out var existingParent))
+                    {
+                        existingDepartment.ParentId = existingParent.Id;
+                    }
+                }
+            }
+
+            await _dbContext.AddRangeAsync(newDepartments);
+            await _dbContext.SaveChangesAsync();
         }
     }
 }
