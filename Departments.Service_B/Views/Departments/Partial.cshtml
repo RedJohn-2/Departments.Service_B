@@ -1,0 +1,14 @@
+﻿@model List<Departments.Service_B.Models.Department>
+
+<ul>
+    @foreach (var child in Model)
+    {
+        <li>
+            @child.Name
+            @if (child.Children != null && child.Children.Any())
+            {
+                @await Html.PartialAsync("Partial", child.Children)
+            }
+        </li>
+    }
+</ul>

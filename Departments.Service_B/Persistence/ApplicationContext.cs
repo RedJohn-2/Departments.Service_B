@@ -16,6 +16,7 @@ namespace Departments.Service_B.Persistence
             modelBuilder.Entity<DepartmentEntity>(entity =>
             {
                 entity.HasKey(e => e.Id);
+                entity.HasAlternateKey(e => e.Name);
                 entity.HasOne(e => e.Parent)
                       .WithMany(e => e.Children)
                       .HasForeignKey(e => e.ParentId)
