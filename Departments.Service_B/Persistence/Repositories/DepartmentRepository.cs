@@ -18,21 +18,46 @@ namespace Departments.Service_B.Persistence.Repositories
 
         public async Task<IReadOnlyList<Department>> GetAll()
         {
-            var departments = await _dbContext.Departments.ToListAsync();
-            return BuildTree(departments, null);
+            var departmentEntities = await _dbContext.Departments.ToListAsync();
+
+            var departments = departmentEntities.Select(d => new Department
+            {
+                Id = d.Id,
+                Name = d.Name,
+                ParentId = d.ParentId
+            }).ToList();
+
+            var departmentDict = departments.ToDictionary(d => d.Id, d => d);
+            FillDepartmentDictionary(departments, departmentDict);
+            return departments;
 
         }
 
-        private List<Department> BuildTree(List<DepartmentEntity> departments, Guid? parentId)
+        private void FillDepartmentDictionary(
+            List<Department> departments,
+            Dictionary<Guid, Department> departmentDict)
+        {
+            departments
+                .Where(d => d.ParentId == null)
+                .ToList()
+                .ForEach(d =>
+                {
+                    d.Children = FillChildren(departments, departmentDict, d.Id);
+                });
+        }
+
+        private List<Department> FillChildren(
+            List<Department> departments,
+            Dictionary<Guid, Department> departmentDict,
+            Guid parentId)
         {
             return departments
                 .Where(d => d.ParentId == parentId)
-                .Select(d => new Department
+                .Select(d =>
                 {
-                    Id = d.Id,
-                    Name = d.Name,
-                    ParentId = d.ParentId,
-                    Children = BuildTree(departments, d.Id)
+                    d.Parent = departmentDict[parentId];
+                    d.Children = FillChildren(departments, departmentDict, d.Id);
+                    return d;
                 }).ToList();
         }
 

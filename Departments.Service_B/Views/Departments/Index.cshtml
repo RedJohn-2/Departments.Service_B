@@ -1,20 +1,57 @@
-﻿@model List<Departments.Service_B.Models.Department>
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Departments</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
 
-<ul>
-    @foreach (var department in Model)
-    {
-        <li>
-            @department.Name
-            @department.Status
-            @if (department.Children != null && department.Children.Count > 0)
-            {
-                @await Html.PartialAsync("Partial", department.Children)
+    @model List<Departments.Service_B.Models.Department>
+
+    <ul>
+        @foreach (var department in Model)
+        {
+            <li>
+                <div data-id="@department.Id">
+                    @department.Name
+                    <span class="status">@department.Status</span>
+                </div>
+                @if (department.Parent != null)
+                {
+                    <span>Входит в состав: @department.Parent.Name</span>
+                }
+            </li>
+        }
+    </ul>
+
+    <form action="Synchronize" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" />
+        <button type="submit">Synchronize</button>
+    </form>
+
+    <script>
+        $(document).ready(function () {
+
+            function refreshStatuses() {
+                let ids = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(d => d.Id).ToList()));
+                console.log(ids);
+                $.ajax({
+                    url: '@Url.Action("RefreshStatuses")',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(ids),
+                    success: function (response) {
+                        for (const [id, status] of Object.entries(response)) {
+                            $(`div[data-id='${id}']`).children('.status').text(status);
+                        }
+                    }
+                });
             }
-        </li>
-    }
-</ul>
 
-<form action="Synchronize" method="post" enctype="multipart/form-data">
-    <input type="file" name="file" />
-    <button type="submit">Synchronize</button>
-</form>
+            setInterval(refreshStatuses, 3000);
+        });
+    </script>
+
+</body>
+</html>

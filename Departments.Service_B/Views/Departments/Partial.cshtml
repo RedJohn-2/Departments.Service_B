@@ -4,7 +4,10 @@
     @foreach (var child in Model)
     {
         <li>
-            @child.Name
+            <div data-id="@child.Id">
+                @child.Name
+                <span class="status">@child.Status</span>
+            </div>
             @if (child.Children != null && child.Children.Any())
             {
                 @await Html.PartialAsync("Partial", child.Children)

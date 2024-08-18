@@ -42,5 +42,14 @@ namespace Departments.Service_B.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+        [HttpPost("[action]")]
+        public async Task<IActionResult> RefreshStatuses([FromBody]List<Guid> guids)
+        {
+            var dict = guids.ToDictionary(g => g, 
+                _ => "Активно");
+
+            return Ok(dict);
+        }
     }
 }
