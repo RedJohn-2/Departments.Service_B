@@ -11,9 +11,14 @@ namespace Departments.Service_B.Controllers
     public class DepartmentsController : Controller
     {
         private readonly IDepartmentRepository _departmentRepository;
-        public DepartmentsController(IDepartmentRepository departmentRepository)
+
+        private readonly IHttpClientFactory _httpClientFactory;
+        public DepartmentsController(
+            IDepartmentRepository departmentRepository, 
+            IHttpClientFactory httpClientFactory)
         {
             _departmentRepository = departmentRepository;
+            _httpClientFactory = httpClientFactory;
         }
 
         public async Task<IActionResult> Index()
@@ -26,7 +31,6 @@ namespace Departments.Service_B.Controllers
         [HttpPost("[action]")]
         public async Task<IActionResult> Synchronize(IFormFile file)
         {
-            var a = 10;
           if (file != null && file.Length > 0)
             {
                 using (var reader = new StreamReader(file.OpenReadStream()))
@@ -46,10 +50,18 @@ namespace Departments.Service_B.Controllers
         [HttpPost("[action]")]
         public async Task<IActionResult> RefreshStatuses([FromBody]List<Guid> guids)
         {
-            var dict = guids.ToDictionary(g => g, 
-                _ => "Активно");
-
-            return Ok(dict);
+            var client = _httpClientFactory.CreateClient("Service_A");
+            var response = await client.PostAsJsonAsync("Status/GetStatusesByDepartmentIds", guids);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var data = await response.Content.ReadFromJsonAsync<Dictionary<Guid, string>>();
+                return Ok(data);
+            }
+            else
+            {
+                return StatusCode((int)response.StatusCode);
+            }
         }
     }
 }

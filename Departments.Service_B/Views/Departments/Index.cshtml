@@ -35,7 +35,6 @@
 
             function refreshStatuses() {
                 let ids = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(d => d.Id).ToList()));
-                console.log(ids);
                 $.ajax({
                     url: '@Url.Action("RefreshStatuses")',
                     method: 'POST',
@@ -45,6 +44,9 @@
                         for (const [id, status] of Object.entries(response)) {
                             $(`div[data-id='${id}']`).children('.status').text(status);
                         }
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.error("Обновление статусов временно недоступно");
                     }
                 });
             }
