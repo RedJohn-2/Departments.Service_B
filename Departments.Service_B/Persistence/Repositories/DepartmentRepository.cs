@@ -94,5 +94,10 @@ namespace Departments.Service_B.Persistence.Repositories
             await _dbContext.AddRangeAsync(newDepartments);
             await _dbContext.SaveChangesAsync();
         }
+
+        public async Task<IReadOnlyList<Department>> GetByName(string name)
+        {
+            return (await GetAll()).Where(d => d.Name.Contains(name)).ToList();
+        }
     }
 }

@@ -8,6 +8,8 @@ namespace Departments.Service_B.Persistence.Repositories
     {
         Task<IReadOnlyList<Department>> GetAll();
 
+        Task<IReadOnlyList<Department>> GetByName(string name);
+
         Task Synchronize(IEnumerable<DepartmentFromFile> departments);
     }
 }

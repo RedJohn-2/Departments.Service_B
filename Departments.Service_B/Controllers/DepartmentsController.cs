@@ -21,11 +21,9 @@ namespace Departments.Service_B.Controllers
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            var departments = await _departmentRepository.GetAll();
-
-            return View(departments);
+            return View();
         }
 
         [HttpPost("[action]")]
@@ -44,7 +42,23 @@ namespace Departments.Service_B.Controllers
                 }
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(GetAll));
+        }
+
+        [HttpGet("[action]")]
+        public async Task<IActionResult> GetAll() 
+        { 
+            var departments = await _departmentRepository.GetAll();
+
+            return PartialView("_DepartmentsList", departments);
+        }
+
+        [HttpGet("[action]")]
+        public async Task<IActionResult> GetByName([FromQuery]string name)
+        {
+            var departments = await _departmentRepository.GetByName(name);
+
+            return PartialView("_DepartmentsList", departments);
         }
 
         [HttpPost("[action]")]

@@ -9,49 +9,57 @@
 
     @model List<Departments.Service_B.Models.Department>
 
-    <ul>
-        @foreach (var department in Model)
-        {
-            <li>
-                <div data-id="@department.Id">
-                    @department.Name
-                    <span class="status">@department.Status</span>
-                </div>
-                @if (department.Parent != null)
-                {
-                    <span>Входит в состав: @department.Parent.Name</span>
-                }
-            </li>
-        }
+    <ul id="departments">
     </ul>
 
-    <form action="Synchronize" method="post" enctype="multipart/form-data">
+    <form id="synchronizeForm" action="Synchronize" method="post" enctype="multipart/form-data">
         <input type="file" name="file" />
         <button type="submit">Synchronize</button>
+    </form>
+
+    <form id="filterForm" action="GetByName" method="get">
+        <label for="name">Name filter:</label>
+        <input type="text" id="name" name="name" required />
+        <button type="submit">Filter out</button>
     </form>
 
     <script>
         $(document).ready(function () {
 
-            function refreshStatuses() {
-                let ids = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(d => d.Id).ToList()));
-                $.ajax({
-                    url: '@Url.Action("RefreshStatuses")',
-                    method: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify(ids),
-                    success: function (response) {
-                        for (const [id, status] of Object.entries(response)) {
-                            $(`div[data-id='${id}']`).children('.status').text(status);
-                        }
-                    },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        console.error("Обновление статусов временно недоступно");
-                    }
-                });
-            }
+            $.get('@Url.Action("GetAll")', function (response) {
+                $('#departments').html(response);
+            });
+        });
 
-            setInterval(refreshStatuses, 3000);
+        $('#synchronizeForm').submit(function (event) {
+            event.preventDefault(); // Предотвращаем стандартное поведение формы
+
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: $(this).attr('action'),
+                type: $(this).attr('method'),
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (response) {
+                    $('#departments').html(response);
+                }
+            });
+        });
+
+        $('#filterForm').submit(function (event) {
+            event.preventDefault(); // Предотвращаем стандартное поведение формы
+
+            var name = $('input[name="name"]').val();
+
+            $.ajax({
+                url: $(this).attr('action') + '?name=' + name,
+                type: $(this).attr('method'),
+                success: function (response) {
+                    $('#departments').html(response);
+                }
+            });
         });
     </script>
 

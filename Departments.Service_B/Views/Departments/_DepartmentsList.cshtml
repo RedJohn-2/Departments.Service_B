@@ -1,0 +1,40 @@
+﻿@model List<Departments.Service_B.Models.Department>
+
+@foreach (var department in Model)
+{
+    <li>
+        <div data-id="@department.Id">
+            @department.Name
+            <span class="status">@department.Status</span>
+        </div>
+        @if (department.Parent != null)
+        {
+            <span>Входит в состав: @department.Parent.Name</span>
+        }
+    </li>
+}
+
+<script>
+    $(document).ready(function () {
+
+        function refreshStatuses() {
+            let ids = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(d => d.Id).ToList()));
+            $.ajax({
+                url: '@Url.Action("RefreshStatuses")',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(ids),
+                success: function (response) {
+                    for (const [id, status] of Object.entries(response)) {
+                        $(`div[data-id='${id}']`).children('.status').text(status);
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.error("Обновление статусов временно недоступно");
+                }
+            });
+        }
+
+        setInterval(refreshStatuses, 3000);
+    });
+</script>
